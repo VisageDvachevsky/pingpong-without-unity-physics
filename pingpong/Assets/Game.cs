@@ -1,26 +1,18 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 public class Game : MonoBehaviour
 {
     [System.Serializable]
     public class GameParameters
     {
-        [Header("Ball Settings")]
-        public float BallSpeed; 
-        public float BallRadius;
-    
-        [Header("Platform Settings")]
-        public float PlatformSpeed;
-        public float PlatformWidth; 
-        public float PlatformHeight;
-    
-        [Header("Screen Settings")]
-        public float ScreenWidth; 
-        public float ScreenHeight; 
-    
-        [Header("Tilt Settings")]
-        public float TiltFactor; 
+        public float BallSpeed = 5f;
+        public float PlatformSpeed = 10f;
+        public float TiltFactor = 0.5f;
+        public float ScreenWidth = 10f;
+        public float ScreenHeight = 10f;
+        public float PlatformWidth = 2f;
+        public float PlatformHeight = 0.5f;
+        public float BallRadius = 0.25f;
     }
 
     [System.Serializable]
@@ -43,6 +35,9 @@ public class Game : MonoBehaviour
 
     private GameObjects gameObjects = new GameObjects();
 
+    private float screenHalfWidth => parameters.ScreenWidth / 2;
+    private float screenHalfHeight => parameters.ScreenHeight / 2;
+
     private void Start()
     {
         InitializeGame();
@@ -58,7 +53,7 @@ public class Game : MonoBehaviour
     {
         gameObjects.Background = CreateQuad("Background", new Vector3(0, 0, 1), new Vector2(parameters.ScreenWidth, parameters.ScreenHeight), CreateMaterial(Color.black));
         gameObjects.Ball = CreateQuad("Ball", Vector3.zero, new Vector2(parameters.BallRadius * 2, parameters.BallRadius * 2), CreateMaterial(Color.red));
-        gameObjects.Platform = CreateQuad("Platform", new Vector3(0, -parameters.ScreenHeight / 2, 0), new Vector2(parameters.PlatformWidth, parameters.PlatformHeight), CreateMaterial(Color.blue));
+        gameObjects.Platform = CreateQuad("Platform", new Vector3(0, -screenHalfHeight, 0), new Vector2(parameters.PlatformWidth, parameters.PlatformHeight), CreateMaterial(Color.blue));
     }
 
     private GameObject CreateQuad(string name, Vector3 position, Vector2 scale, Material material)
@@ -98,25 +93,26 @@ public class Game : MonoBehaviour
     {
         float horizontalInput = Input.GetAxis("Horizontal");
         state.PlatformPosition += horizontalInput * parameters.PlatformSpeed * Time.deltaTime;
-        state.PlatformPosition = Mathf.Clamp(state.PlatformPosition, -parameters.ScreenWidth / 2 + parameters.PlatformWidth / 2, parameters.ScreenWidth / 2 - parameters.PlatformWidth / 2);
+        state.PlatformPosition = Mathf.Clamp(state.PlatformPosition, -screenHalfWidth + parameters.PlatformWidth / 2, screenHalfWidth - parameters.PlatformWidth / 2);
     }
 
     private void UpdateBall()
     {
         state.BallPosition += state.BallVelocity * Time.deltaTime;
 
-        if (Mathf.Abs(state.BallPosition.x) > parameters.ScreenWidth / 2 - parameters.BallRadius)
+        if (Mathf.Abs(state.BallPosition.x) > screenHalfWidth - parameters.BallRadius)
         {
             state.BallVelocity.x = -state.BallVelocity.x;
-            state.BallPosition.x = Mathf.Sign(state.BallPosition.x) * (parameters.ScreenWidth / 2 - parameters.BallRadius);
-        }
-        if (state.BallPosition.y > parameters.ScreenHeight / 2 - parameters.BallRadius)
-        {
-            state.BallVelocity.y = -state.BallVelocity.y;
-            state.BallPosition.y = parameters.ScreenHeight / 2 - parameters.BallRadius;
+            state.BallPosition.x = Mathf.Sign(state.BallPosition.x) * (screenHalfWidth - parameters.BallRadius);
         }
 
-        if (state.BallPosition.y < -parameters.ScreenHeight / 2 + parameters.BallRadius)
+        if (state.BallPosition.y > screenHalfHeight - parameters.BallRadius)
+        {
+            state.BallVelocity.y = -state.BallVelocity.y;
+            state.BallPosition.y = screenHalfHeight - parameters.BallRadius;
+        }
+
+        if (state.BallPosition.y < -screenHalfHeight + parameters.BallRadius)
         {
             ResetGame();
         }
@@ -124,14 +120,14 @@ public class Game : MonoBehaviour
 
     private void CheckCollision()
     {
-        if (state.BallPosition.y - parameters.BallRadius <= -parameters.ScreenHeight / 2 + parameters.PlatformHeight &&
+        if (state.BallPosition.y - parameters.BallRadius <= -screenHalfHeight + parameters.PlatformHeight &&
             state.BallPosition.x >= state.PlatformPosition - parameters.PlatformWidth / 2 &&
             state.BallPosition.x <= state.PlatformPosition + parameters.PlatformWidth / 2)
         {
             state.BallVelocity.y = Mathf.Abs(state.BallVelocity.y);
             state.BallVelocity = Quaternion.Euler(0, 0, Random.Range(-15f, 15f)) * state.BallVelocity;
             state.BallVelocity = state.BallVelocity.normalized * parameters.BallSpeed;
-            state.BallPosition.y = -parameters.ScreenHeight / 2 + parameters.PlatformHeight + parameters.BallRadius;
+            state.BallPosition.y = -screenHalfHeight + parameters.PlatformHeight + parameters.BallRadius;
         }
     }
 
@@ -144,7 +140,7 @@ public class Game : MonoBehaviour
 
         if (gameObjects.Platform != null)
         {
-            gameObjects.Platform.transform.position = new Vector3(state.PlatformPosition - parameters.TiltFactor, -parameters.ScreenHeight / 2 + parameters.PlatformHeight / 2, 0);
+            gameObjects.Platform.transform.position = new Vector3(state.PlatformPosition - parameters.TiltFactor, -screenHalfHeight + parameters.PlatformHeight / 2, 0);
         }
     }
 
