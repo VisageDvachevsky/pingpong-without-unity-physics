@@ -6,14 +6,21 @@ public class Game : MonoBehaviour
     [System.Serializable]
     public class GameParameters
     {
-        public float BallSpeed = 5f;
-        public float PlatformSpeed = 10f;
-        public float TiltFactor = 0.5f;
-        public float ScreenWidth = 10f;
-        public float ScreenHeight = 10f;
-        public float PlatformWidth = 2f;
-        public float PlatformHeight = 0.5f;
-        public float BallRadius = 0.25f;
+        [Header("Ball Settings")]
+        public float BallSpeed; 
+        public float BallRadius;
+    
+        [Header("Platform Settings")]
+        public float PlatformSpeed;
+        public float PlatformWidth; 
+        public float PlatformHeight;
+    
+        [Header("Screen Settings")]
+        public float ScreenWidth; 
+        public float ScreenHeight; 
+    
+        [Header("Tilt Settings")]
+        public float TiltFactor; 
     }
 
     [System.Serializable]
